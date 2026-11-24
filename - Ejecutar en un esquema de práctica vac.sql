@@ -150,5 +150,126 @@ JOIN pagos pg ON p.id_pedido = pg.id_pedido
 GROUP BY p.id_pedido, c.nombre
 
 
+Ejercicio 08
+Obtener la cantidad de pedidos y el valor promedio de sus importes para cada estado. Presentar los estados con un
+valor promedio superior a 60000.
+SELECT p.estado, COUNT(p.id_pedido) AS cantidad_pedidos, AVG(p.total) AS promedio_importes
+FROM pedidos p
+GROUP BY p.estado
+HAVING AVG(p.total) > 60000
 
-EJERCCICIO 08
+
+
+Ejercicio 09
+Mostrar el nombre, categoría y monto total de pagos realizados para cada cliente. Incluir también a los clientes sin
+pagos, con un total de cero.
+
+
+SELECT c.nombre, c.categoria, NVL(SUM(pg.monto), 0) AS total_pagos
+FROM clientes c
+LEFT JOIN pedidos p ON c.id_cliente = p.id_cliente
+LEFT JOIN pagos pg ON p.id_pedido = pg.id_pedido
+GROUP BY c.id_cliente, c.nombre, c.categoria
+
+Ejercicio 10
+Identificar los clientes cuyo total de pedidos supera el promedio del total de pedidos por cliente, considerando
+únicamente clientes que hayan realizado al menos un pedido.
+SELECT c.nombre, SUM(p.total) AS total_pedidos
+FROM clientes c
+JOIN pedidos p ON c.id_cliente = p.id_cliente
+GROUP BY c.id_cliente, c.nombre
+HAVING SUM(p.total) > (SELECT AVG(total_pedidos) FROM (SELECT SUM(total) AS total_pedidos FROM pedidos GROUP BY id_cliente))
+Ejercicio 12
+Indicar los clientes que hayan realizado al menos un pedido que no registre
+SELECT c.nombre, COUNT(p.id_pedido) AS cantidad_pedidos_sin_pago
+FROM clientes c
+JOIN pedidos p ON c.id_cliente = p.id_cliente
+LEFT JOIN pagos pg ON p.id_pedido = pg.id_pedido
+WHERE pg.id_pago IS NULL
+
+jercicio 13
+Mostrar por ciudad la cantidad de clientes distintos, la cantidad de pedidos distintos y el monto total facturado por
+pedidos. Incluir las ciudades donde no existen pedidos.
+
+SELECT c.ciudad, COUNT(DISTINCT c.id_cliente) AS cantidad_clientes, COUNT(DISTINCT p.id_pedido) AS cantidad_pedidos, NVL(SUM(p.total), 0) AS monto_total_facturado
+FROM clientes c 
+LEFT JOIN pedidos p ON c.id_cliente = p.id_cliente
+GROUP BY c.ciudad   
+
+
+Ejercicio 14
+Mostrar para cada medio de pago la cantidad de pagos, el importe total recaudado y el importe promedio por pago.
+Incluir solo medios con recaudación superior a 200000.
+SELECT pg.medio_pago, COUNT(pg.id_pago) AS cantidad_pagos, SUM(pg.monto) AS total_recaudado, AVG(pg.monto) AS promedio_pago
+FROM pagos pg   
+WHERE SUM(pg.monto) > 200000
+GROUP BY pg.medio_pago
+
+Ejercicio 15
+Obtener los clientes que tengan pedidos en más de un estado diferente. Mostrar nombre y cantidad de estados
+distintos registrados.
+SELECT c.nombre, COUNT(DISTINCT p.estado) AS cantidad_estados
+FROM clientes c 
+JOIN pedidos p ON c.id_cliente = p.id_cliente
+GROUP BY c.id_cliente, c.nombre
+
+
+
+Ejercicio 16
+Listar todos los clientes y la cantidad de pedidos ENTREGADO que tiene cada uno, incluyendo a quienes no registren
+pedidos de ese estado.
+SELECT c.nombre, COUNT(p.id_pedido) AS cantidad_pedidos_entregado
+FROM clientes c     
+LEFT JOIN pedidos p ON c.id_cliente = p.id_cliente AND p.estado = 'ENTREGADO'
+GROUP BY c.id_cliente, c.nombre
+
+
+
+
+
+Ejercicio 17
+Identificar las categorías de clientes cuyo importe acumulado de pedidos sea mayor que el importe acumulado de
+pedidos de la categoría BRONCE.
+
+SELECT c.categoria, SUM(p.total) AS total_acumulado
+FROM clientes c
+LEFT JOIN pedidos p ON c.id_cliente = p.id_cliente
+GROUP BY c.categoria    
+
+
+
+
+
+Ejercicio 18
+Mostrar los clientes cuyo total de pagos recibidos sea superior al promedio del total de pagos por cliente,
+considerando solo clientes que hayan recibido algún pago.
+SELECT c.nombre, SUM(pg.monto) AS total_pagos
+FROM clientes c 
+JOIN pedidos p ON c.id_cliente = p.id_cliente
+JOIN pagos pg ON p.id_pedido = pg.id_pedido
+GROUP BY c.id_cliente, c.nombre
+HAVING SUM(pg.monto) > (SELECT AVG(total_pagos) FROM (SELECT SUM(pg.monto) AS total_pagos FROM clientes c JOIN pedidos p ON c.id_cliente = p.id_cliente JOIN pagos pg ON p.id_pedido = pg.id_pedido GROUP BY c.id_cliente))
+
+
+Ejercicio 19
+Encontrar los pedidos que todavía tienen saldo pendiente de pago, incluyendo los que no registran pagos. Mostrar
+cliente, pedido, total, monto pagado y saldo.
+SELECT c.nombre, p.id_pedido, p.total, NVL(SUM(pg.monto), 0) AS monto_pagado, p.total - NVL(SUM(pg.monto), 0) AS saldo
+FROM clientes c 
+JOIN pedidos p ON c.id_cliente = p.id_cliente
+LEFT JOIN pagos pg ON p.id_pedido = pg.id_pedido
+GROUP BY c.nombre, p.id_pedido, p.total
+
+
+
+
+
+Ejercicio 20
+Mostrar los clientes que hayan efectuado por lo menos dos pedidos ENTREGADO y cuyo importe acumulado de esos
+pedidos supere los 150000. Incluir nombre, cantidad de pedidos y total acumulado.
+ SELECT c.nombre, COUNT(p.id_pedido) AS cantidad_pedidos_entregado, SUM(p.total) AS total_acumulado
+FROM clientes c
+JOIN pedidos p ON c.id_cliente = p.id_cliente
+WHERE p.estado = 'ENTREGADO'
+GROUP BY c.id_cliente, c.nombre
+HAVING COUNT(p.id_pedido) >= 2 AND SUM(p.total) > 150000
